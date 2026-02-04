@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>発表スクリプト：歌唱時の音高合わせにおける振動刺激が及ぼす影響</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #f4f1ec;
+    --card: #ffffff;
+    --accent: #3a5a6e;
+    --accent2: #e07a5f;
+    --text: #2c2c2c;
+    --text-light: #6b6b6b;
+    --border: #e0dbd4;
+    --tag-bg: #eef2f4;
+    --progress-track: #ddd5ca;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+
+  /* ─── Header ─── */
+  .header {
+    max-width: 780px;
+    margin: 0 auto 28px;
+    text-align: center;
+  }
+  .header h1 {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .header .sub {
+    font-size: 0.82rem;
+    color: var(--text-light);
+  }
+
+  /* ─── Total timer bar ─── */
+  .timer-bar {
+    max-width: 780px;
+    margin: 0 auto 24px;
+    background: var(--card);
+    border-radius: 12px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .timer-bar .label { font-size: 0.78rem; color: var(--text-light); white-space: nowrap; }
+  .timer-bar .track {
+    flex: 1;
+    height: 8px;
+    background: var(--progress-track);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .timer-bar .fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+  .timer-bar .time-text { font-size: 0.82rem; font-weight: 600; color: var(--accent); white-space: nowrap; min-width: 58px; text-align: right; }
+
+  /* ─── Section card ─── */
+  .section-card {
+    max-width: 780px;
+    margin: 0 auto 16px;
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 1px 5px rgba(0,0,0,.07);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: border-color 0.25s;
+  }
+  .section-card.active { border-color: var(--accent); }
+
+  /* header row */
+  .sec-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    gap: 12px;
+  }
+  .sec-header:hover { background: #faf8f5; }
+  .sec-num {
+    background: var(--accent);
+    color: #fff;
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 600;
+    flex-shrink: 0;
+  }
+  .section-card.done .sec-num { background: var(--accent2); }
+  .sec-title {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    flex: 1;
+  }
+  .sec-meta { font-size: 0.75rem; color: var(--text-light); white-space: nowrap; }
+  .chevron {
+    width: 18px; height: 18px;
+    transition: transform 0.25s;
+    color: var(--text-light);
+  }
+  .section-card.open .chevron { transform: rotate(180deg); }
+
+  /* body */
+  .sec-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(.4,0,.2,1);
+  }
+  .section-card.open .sec-body { max-height: 8000px; }
+
+  .sec-content {
+    padding: 0 24px 22px;
+    line-height: 1.78;
+    font-size: 0.92rem;
+  }
+  .sec-content p { margin-bottom: 12px; }
+  .sec-content p:last-child { margin-bottom: 0; }
+
+  /* callout / emphasis box */
+  .callout {
+    background: #eef5f8;
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0 6px 6px 0;
+    margin: 14px 0;
+    font-size: 0.88rem;
+  }
+  .callout.warn {
+    background: #fdf3ec;
+    border-left-color: var(--accent2);
+  }
+
+  /* tag */
+  .tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-right: 4px;
+    margin-bottom: 4px;
+  }
+
+  /* mini table */
+  .mini-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.85rem;
+  }
+  .mini-table th {
+    background: var(--accent);
+    color: #fff;
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 500;
+  }
+  .mini-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .mini-table tr:last-child td { border-bottom: none; }
+  .mini-table tr:nth-child(even) td { background: #faf8f5; }
+
+  /* mark done btn */
+  .mark-btn {
+    display: block;
+    margin: 14px 24px 18px;
+    padding: 8px;
+    border: 1.5px dashed var(--border);
+    background: transparent;
+    border-radius: 8px;
+    color: var(--text-light);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: border-color .2s, color .2s;
+  }
+  .mark-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+  .section-card.done .mark-btn { border-color: var(--accent2); color: var(--accent2); font-weight: 600; }
+
+  /* demo placeholder */
+  .demo-box {
+    border: 2px dashed var(--accent2);
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    margin: 14px 0;
+    background: #fff9f6;
+  }
+  .demo-box .demo-label { font-size: 0.75rem; color: var(--accent2); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .demo-box p { font-size: 0.85rem; color: var(--text-light); margin-top: 4px; }
+
+  /* flow diagram (text-based) */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    margin: 14px 0;
+  }
+  .flow-step {
+    background: #eef5f8;
+    border: 1px solid #cde3ed;
+    border-radius: 8px;
+    padding: 8px 22px;
+    font-size: 0.83rem;
+    font-weight: 500;
+    text-align: center;
+    min-width: 240px;
+  }
+  .flow-arrow { color: var(--accent); font-size: 1.1rem; }
+
+  /* result highlight */
+  .result-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 12px 0;
+  }
+  .result-chip {
+    flex: 1 1 140px;
+    background: #eef5f8;
+    border-radius: 10px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .result-chip .r-val { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+  .result-chip .r-label { font-size: 0.73rem; color: var(--text-light); margin-top: 2px; }
+  .result-chip.sig { background: #e6f0e8; }
+  .result-chip.sig .r-val { color: #2e7d4f; }
+  .result-chip.ns { background: #f5f0e8; }
+  .result-chip.ns .r-val { color: #9a7b4f; }
+
+  .footer-note {
+    max-width: 780px;
+    margin: 28px auto 0;
+    text-align: center;
+    font-size: 0.76rem;
+    color: var(--text-light);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>歌唱時の音高合わせにおける振動刺激が及ぼす影響</h1>
+  <div class="sub">田中 悠晴　｜　2025年度 関西大学 米澤朋子研究室 卒業論文 ｜　発表スクリプト（詳細版）</div>
+</div>
+
+<!-- total progress -->
+<div class="timer-bar">
+  <span class="label">発表進行</span>
+  <div class="track"><div class="fill" id="totalFill"></div></div>
+  <span class="time-text" id="totalTimeLeft">約 18 min</span>
+</div>
+
+<!-- ════════════════════════════════════════
+     SECTIONS – data-mins = 発表時間（分）
+     ════════════════════════════════════════ -->
+
+<!-- ① 研究概要 -->
+<div class="section-card" data-mins="2.5">
+  <div class="sec-header" onclick="toggle(this)">
+    <div class="sec-num">1</div>
+    <div class="sec-title">研究概要</div>
+    <div class="sec-meta">約 2 分 30 秒</div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sec-body">
+    <div class="sec-content">
+      <p>
+        皆さん、本日はよろしくお願いいたします。私の研究テーマは「歌唱時の音高合わせにおける振動刺激が及ぼす影響」です。
+      </p>
+      <p>
+        まず、本研究の概要について、論文のアブストラクトから引用してご説明します。
+      </p>
+      <div class="callout">
+        <strong>【論文アブストラクト】</strong><br>
+        本研究では、歌唱時の音高合わせを容易にし、歌唱をより楽しめるようにすることを目的とし、振動刺激によるリアルタイムフィードバックが視覚刺激によるリアルタイムフィードバックの増強として寄与するのかについて検証を行った。結果として、振動提示の付与は「楽しさ」や「音高の合わせやすさ」といった主観的評価を有意に向上させる一方で、短時間の試行では客観的な音高精度の向上や時間短縮には直結しないことが示された。また、振動パターンの変化曲線に関しては、冪乗的な変化よりも線形的な変化の方が、主観的な歌唱の心地よさおよび客観的な音高合わせの効率の向上に有意に有効であることが示唆された。
+      </div>
+      <p>
+        つまり、本研究では、カラオケのような音程バーによる視覚フィードバックに加えて、手のひらに振動を与える触覚フィードバックを組み合わせたシステムを開発し、その効果を検証しました。そして、振動フィードバックが「音高の合わせやすさ」や「歌の楽しさ」にどのような影響があるかを、24名の被験者を対象に3つの実験で明らかにしました。
+      </p>
+      <div class="callout">
+        【キーワード】歌唱支援・振動フィードバック・音高合わせ・知覚運動マッピング・音楽教育
+      </div>
+      <p>
+        今日はこの研究の背景から、関連研究、提案システムの詳細、実験設計、分析結果、考察、そして今後の展望まで、一つひとつ丁寧に説明していきます。発表時間は約18分を予定しています。
+      </p>
+    </div>
+    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+  </div>
+</div>
+
+<!-- ② 背景 -->
+<div class="section-card" data-mins="3">
+  <div class="sec-header" onclick="toggle(this)">
+    <div class="sec-num">2</div>
+    <div class="sec-title">背景</div>
+    <div class="sec-meta">約 3 分</div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sec-body">
+    <div class="sec-content">
+      <p>
+        まず、なぜこの研究に取り組んだのかについて、背景を詳しく説明します。
+      </p>
+      <p>
+        音楽、中でも歌うことが好きな人は日本人の中で多くいる一方で、それと同時に苦手だと感じている人も多いです。日本では、他者の目を気にせず歌の練習や歌うことによるストレス発散に特化できる一人でのカラオケ、いわゆる「ヒトカラ」という文化が存在します。これは国民性的にも、歌唱に対する悩みを抱えている人が多いことを表していると言えます。
+      </p>
+      <p>
+        「リズム感」や「音感」という言葉があるように、拍子と音高を合わせることは歌唱の上手さを決める重要な定量的2大要因であると考えられます。これらの能力が乏しい人のことはしばしば「音痴」であるなどと表現されます。音痴であることを自覚すると、精神的にも歌唱を楽しめなくなってしまいます。
+      </p>
+      <p>
+        しかし、歌唱能力は生まれつきのものだけではありません。訓練するとある程度のレベルまでは後天的に獲得できるとされています。そこで本研究では、音感に焦点を当て、「自分は音痴だ」といった歌唱時の悩みを軽減させ、歌うことをより楽しめるようになることを目的としました。
+      </p>
+      
+      <p><strong>【音痴の原因について】</strong></p>
+      <p>
+        先行研究、特にPfordresherらの研究によると、音痴な人の歌唱に共通する傾向を調査した結果、音痴は知覚、運動、記憶の統合に問題がある可能性が指摘されています。さらにPfordresherらは、Auditory Imageryと呼ばれる、実際の聴覚刺激がない状態で音を思い浮かべる能力を質問紙で調査し、その結果が声の模倣とピッチの弁別の双方に相関があることを明らかにしました。
+      </p>
+      <p>
+        これらの研究から、正しい音高で発声・歌唱をするには、脳によって音高を正確に聞き分け記憶し、それを神経が筋肉に正確に伝えることが重要であると言えます。
+      </p>
+      
+      <div class="callout warn">
+        <strong>【音痴の2つの原因】</strong><br><br>
+        これらがうまくできない理由として、Pfordresherらや Sundbergの研究に基づき、大きく2つの原因が考えられます。<br><br>
+        <strong>第一に、</strong>発声が比較的容易な音域であるにもかかわらず音高が合わない場合、これは主に音高の「知覚」と発声の「運動」を連携させる神経的なマッピング（知覚運動マッピング）が不正確であることにあります。<br><br>
+        <strong>第二に、</strong>高音域などで発声自体が困難（苦しい）であるために音高が合わない場合、これは発声時に喉頭周辺の不要な筋肉が過剰に緊張する（力む）といった、「不適切な発声フォーム（プロセス）」が習慣化していることにあります。
+      </div>
+      
+      <p>
+        どちらのケースにおいても、正確な発声を根本的に可能にする「学習定着」、すなわち正しい神経制御パターンを脳に再構築するには、反復的な訓練による運動学習が必要であり、根本的な解決には時間を要する課題です。
+      </p>
+      <p>
+        しかし、後者の「不適切な発声フォーム」の問題は、音高という「結果」をフィードバックするだけでは、原因である「力み」のプロセスは修正されず、むしろ力みを助長する可能性も考えられ、一時的な改善も困難な場合があります。
+      </p>
+      <p>
+        一方、前者の「知覚運動マッピングの不正確さ」の問題は、音高のズレという「結果」をリアルタイムにフィードバックする補助手段を用いると、根本的な解決とは別に、一時的なパフォーマンスの向上は可能であるとされています。
+      </p>
+      <p>
+        そこで本研究では、この「知覚運動マッピングの不正確さ」に対するアプローチとして、リアルタイムフィードバックを活用することにしました。
+      </p>
+    </div>
+    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+  </div>
+</div>
+
+<!-- ③ 関連研究 -->
+<div class="section-card" data-mins="3">
+  <div class="sec-header" onclick="toggle(this)">
+    <div class="sec-num">3</div>
+    <div class="sec-title">関連研究</div>
+    <div class="sec-meta">約 3 分</div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sec-body">
+    <div class="sec-content">
+      <p>
+        次に、本研究に関連する先行研究について、4つの視点から詳しく紹介します。
+      </p>
+      
+      <p><strong>①身体的振動刺激による音楽体験の拡張と臨場感の向上</strong></p>
+      <p>
+        音楽を聴覚以外の感覚で享受する手法として、振動刺激を用いた研究が多くなされています。柳らは、振動モータアレイを用いた音楽の物理的臨場感提示システムを提案しました。これは音楽の迫力を身体で感じることで、より深い没入感を得ることを目的としています。
+      </p>
+      <p>
+        また、金箱は、振動デバイスが音楽聴取時の印象に与える効果について検討し、特定の振動付与が「楽しさ」や「快感」といった主観的な評価を向上させることを明らかにしました。これらの研究は、振動刺激が単なる情報伝達の手段に留まらず、音楽体験における情動的な満足度を高める要因であることを示しています。本研究においても、振動刺激が歌唱時の「楽しさ」に寄与するかを検証する上での重要な知見です。
+      </p>
+      
+      <p><strong>②歌唱におけるピッチ制御の困難性と視覚フィードバックの有効性</strong></p>
+      <p>
+        歌唱における「音程のズレ」を改善するための支援手法について、多くの研究がなされてきました。Pfordresherらは、ピッチが正確に歌えない要因として、聴覚イメージと実際の発声運動を一致させる「知覚運動マッピング」の不全を指摘しています。
+      </p>
+      <p>
+        これに対し、島宗らや米田は、家庭用カラオケの採点システムや音程可視化ソフトウェアを用いた訓練の効果を検証し、リアルタイムの視覚フィードバックが自己修正を促し、音程再現の精度を向上させることを示しました。このように視覚情報の有用性は確立されていますが、視覚に頼りすぎることで発声に集中しにくくなる可能性も考えられます。本研究では、視覚情報に触覚情報を加えることで、より直感的なピッチ制御が可能になるかを検証します。
+      </p>
+      
+      <p><strong>③身体障がい者を対象とした振動フィードバックによる歌唱支援</strong></p>
+      <p>
+        聴覚情報を十分に利用できない対象者に対し、振動を代替手段とする研究が先行しています。坂尻らは、盲ろう者や聴覚障がい者の歌唱支援を目的として、音声ピッチ情報を振動に変換して提示する触覚フィードバックシステムを開発しました。このシステムを用いた評価実験では、目標音程との多少のズレはあるものの、被験者がメロディに沿って歌唱することが可能であることを示しました。
+      </p>
+      <p>
+        また、古賀らは腕に装着した振動モータを用いて、音声ピッチの変化を伝達する手法を提案し、訓練によって音程制御能力が向上することを報告しています。これらの研究は、振動刺激が音高情報を伝達する有力なメディアであることを証明しており、本研究における「振動による音程合わせの補助」の技術的根拠となっています。
+      </p>
+      
+      <p><strong>④健常者の音楽学習における振動刺激の活用</strong></p>
+      <p>
+        健常者の音楽学習における振動刺激の活用については、リズム学習の分野で先行研究があります。三浦らは、触覚フィードバックを用いた音楽学習支援システム「T-RHYTHM」を開発し、タイミング把握における触覚の有効性を確認しました。しかし、音高（ピッチ）の制御における補助として健常者を対象とした研究は未だ十分ではありません。
+      </p>
+      <p>
+        既存の研究は「障がい者の代替手段」としての振動活用か、あるいは「リズム学習」への適用に主眼を置いています。これに対し本研究は、健常者が既存の視覚フィードバック（音程バー）を使用する環境下において、補助的な情報としての振動刺激が「音高合わせの正確さ」や「主観的な歌いやすさ・楽しさ」にどのような相乗効果をもたらすかを体系的に検証する点に独自性があります。
+      </p>
+      
+      <div class="callout">
+        <strong>【本研究の独自性】</strong><br>
+        障がい者への「代替手段」や「リズム学習」への適用ではなく、健常者が既存の視覚フィードバック（音程バー）を使う環境下で、振動が音高合わせの正確さや楽しさに相乗効果を与えるかを体系的に検証する点が、本研究の独自性です。
+      </div>
+    </div>
+    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+  </div>
+</div>
+
+<!-- ④ 提案システム -->
+<div class="section-card" data-mins="4">
+  <div class="sec-header" onclick="toggle(this)">
+    <div class="sec-num">4</div>
+    <div class="sec-title">提案システム</div>
+    <div class="sec-meta">約 4 分（デモ動画 込み）</div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sec-body">
+    <div class="sec-content">
+      <p>
+        では、開発したシステムについて詳しく説明します。本システムは、カラオケを参考にして制作されました。モニターに目標音高と実際の発声音高の2つのバーを表示し、その差分に連動して手のひらに振動を与えるという仕組みです。
+      </p>
+
+      <p><strong>【システムの概要】</strong></p>
+      <p>
+        本研究では、カラオケを参考に、モニターに課題曲の音階名を指し示すバーと、リアルタイム入力音声の音階名を指し示すバーをそれぞれ表示し、その差異を視覚的に把握できるシステムを提案します。さらに、その差異、つまり正確度に連動して、手のひらに振動を与えるという触覚フィードバックを追加しました。
+      </p>
+
+      <p><strong>【使用するツールとシステム設計】</strong></p>
+      <p>
+        本システムは、デスクトップミュージックとマルチメディア作成用のビジュアルプログラミング言語である「Pure Data Vanilla 0.54」と、Arduinoにより制御する振動モータを用いて実装を行いました。
+      </p>
+      <p>
+        ソフトウェア設計における処理手順は、入力・計算・出力の3段階で構成されます。これから、各段階を詳しく説明します。
+      </p>
+
+      <p><strong>【処理フロー】</strong></p>
+      <div class="flow">
+        <div class="flow-step">🎤 入力段階：マイクから音声を入力</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">アナログ音声信号をデジタル変換</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">基本周波数から MIDI 番号をリアルタイム抽出<br>（小数値を含む離散値）</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">ノイズ除去処理<br>（一定の音量閾値を下回る入力を遮断）</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">🧮 計算段階：抽出した音高を12で除算</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">オクターブ内での相対的な位置に正規化<br>（0〜11の数値）</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">目標音高を基準の0とした際の<br>相対的な入力音高の差を算出</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">オクターブの周期性を考慮した最短距離<br>「ずれ度」として定義（0〜6の範囲）<br>0＝一致、6＝最大級の不正確</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">±0.25半音以内であれば正確な発声と判定</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">その結果に基づいて振動デバイスを駆動させる<br>強度（0.0〜1.0）を決定</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">📳 出力段階：計算された強度を<br>パルス幅変調（PWM）信号として Arduino へ送信</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">振動モータを駆動</div>
+      </div>
+
+      <p>
+        この一連の処理により、発声音高と目標音高のズレがリアルタイムに振動強度として手のひらに伝達されます。
+      </p>
+
+      <p><strong>【振動の与え方：4つのパターン】</strong></p>
+      <p>
+        振動付与の仕方は、以下の4つのパターンを作成しました。これらは実験3で比較検証されます。
+      </p>
+
+      <table class="mini-table">
+        <thead><tr><th>パターン</th><th>変化の向き</th><th>変化曲線</th></tr></thead>
+        <tbody>
+          <tr><td>A (X1Y1)</td><td>正確なほど強くなる</td><td>線形（一次関数的）</td></tr>
+          <tr><td>B (X1Y2)</td><td>不正確なほど強くなる</td><td>線形（一次関数的）</td></tr>
+          <tr><td>C (X2Y1)</td><td>正確なほど強くなる</td><td>冪乗（指数関数的）</td></tr>
+          <tr><td>D (X2Y2)</td><td>不正確なほど強くなる</td><td>冪乗（指数関数的）</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>【ハードウェア設計】</strong></p>
+      <p>
+        ハードウェア設計においては、手のひらや顔表面は非常に振動刺激を感知しやすく、その他の部分では振動の細かな変化が感知できない部分があるという知見から、振動モーター1個を縦・横・高さのそれぞれの最大長が38mm × 38mm × 114mmで、重量は20gの筒状の棒に取り付け、手のひらで握るようにしました。この形状により、振動刺激が効率的に手のひらに伝わるようにしています。
+      </p>
+
+      <!-- デモ動画のプレースホルダー -->
+      <div class="demo-box">
+        <div class="demo-label">🎥 デモ動画 ここに挿入</div>
+        <p>システムの実動作を映像で示す。画面上の音程バー（目標音高の青いバーと発声音高の黒いバー）と振動モータの動作を同時に見せる。実際に発声しながら音高を合わせていく様子を実演する。</p>
+      </div>
+
+      <p>
+        以上が提案システムの全体像です。次に、このシステムを用いてどのような実験を行ったかについて説明します。
+      </p>
+    </div>
+    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+  </div>
+</div>
+
+<!-- ⑤ 実験設計 -->
+<div class="section-card" data-mins="3">
+  <div class="sec-header" onclick="toggle(this)">
+    <div class="sec-num">5</div>
+    <div class="sec-title">検証：実験設定の説明</div>
+    <div class="sec-meta">約 3 分</div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sec-body">
+    <div class="sec-content">
+      <p>
+        実験の設計について詳しく説明します。実験は合計3つで構成されており、それぞれ異なる検証目的を持っています。
+      </p>
+
+      <p><strong>【被験者について】</strong></p>
+      <p>
+        被験者は、視覚・聴覚・触覚に障がいのない20〜23歳の男女24名です。平均年齢は21.6歳で、男性18名・女性6名という構成です。
+      </p>
+      <p>
+        被験者の音楽経験についても詳しく調査しており、1年以上の音楽経験者（楽器や歌の習い事、部活、個人練習など）が13名、カラオケ、習い事、部活などを月一回以上行う歌唱経験者（鼻歌や、お風呂での歌唱など、他の動作を行いながらの歌唱は除く）が9名です。
+      </p>
+      <p>
+        さらに、7歳までの期間での継続的な音楽経験は絶対音感や相対音感の獲得に大きな影響を与えることから、7歳までの音楽経験（楽器や歌の習い事など）についても調査を行いました。音楽、とりわけ音感については幼少期の音楽経験や歌唱の熟練度が大きく影響し、これらの差は本実験にも大きく影響すると考えられるため、この点も考慮に入れています。
+      </p>
+
+      <p><strong>【実験環境】</strong></p>
+      <p>
+        実験では無理なく発声できる音域を使用するため、音高の正確性を教示せずC2からB2、C3からB3、C4からB4、C5からB5のドレミファソラシの7音をそれぞれ発声してもらい、最も楽に発声できたと感じたオクターブを申告してもらいました。その後、実験者がCとBの発声を聞き、被験者のオクターブの認識違いがないかを確認しました。
+      </p>
+      <p>
+        また、実験は防音室等の周囲の環境音がない場所で、歌唱中は被験者が空間内に1人になる環境で行われました。これにより、他者の視線や周囲の音による影響を排除しています。
+      </p>
+
+      <p><strong>実験1：単音発声の音高合わせ（振動の有無の比較）</strong></p>
+      <p>
+        実験1では発声に焦点を当て、振動刺激が目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行いました。ランダムに指し示される目標音高を被験者が2秒以上合わせる手順を9回繰り返し、終了までの時間の計測と、その後に評価項目に回答を求めました。
+      </p>
+      <p>
+        実験条件は、振動刺激なし（A1）と振動刺激あり（A2）の1要因2水準の被験者内実験計画です。発声開始から全手順終了までの時間を計測するとともに、被験者はVAS法（Visual Analogue Scale）に従い、音高合わせの自信度、音高の合わせやすさ、音高合わせの楽しさについて、100段階評価で回答しました。
+      </p>
+
+      <p><strong>実験2：メロディに沿った歌唱の音高合わせ（振動の有無の比較）</strong></p>
+      <p>
+        実験2では歌唱に焦点を当て、振動刺激が目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行いました。カラオケのように右から左に流れてくる目標音高を被験者が時間内に合わせるよう努める手順を15回繰り返し、時間内にどれだけ音高を正確に合わせられていたかの測定と、その後に評価項目に回答を求めました。
+      </p>
+      <p>
+        実験条件は、振動刺激なし（B1）と振動刺激あり（B2）の1要因2水準の被験者内実験計画です。前後0.5秒を除外した各音高毎の正確度と乖離度を計測し一曲分の平均的な正確度と乖離度を計算するとともに、被験者は歌唱の自信度、歌唱の気持ちよさ、歌唱の楽しさについて100段階評価で回答しました。
+      </p>
+
+      <p><strong>実験3：振動パターンの種類による比較</strong></p>
+      <p>
+        実験3では、どの振動タイプを用いた時が最も目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行いました。実験1と同様、ランダムに指し示される目標音高を被験者が2秒以上合わせる手順を9回繰り返し、終了までの時間の計測と、その後に評価項目に回答を求めました。
+      </p>
+      <p>
+        実験条件は、振動変化の線形の違い（X1: 直線的、X2: 二次関数的）と振動刺激の強弱の変化の向き（Y1: 正確なほど強い、Y2: 正確なほど弱い）の2要因2水準の組み合わせによる計4条件（X1Y1、X1Y2、X2Y1、X2Y2）の被験者内実験計画です。カウンターバランスを考慮した順序で各被験者に実施し、音高の合わせやすさ、気持ちよさ、楽しさ、集中度について100段階評価で回答を求めました。
+      </p>
+    </div>
+    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+  </div>
+</div>
+
+<!-- ⑥ 分析結果 -->
+<div class="section-card" data-mins="3">
+  <div class="sec-header" onclick="toggle(this)">
+    <div class="sec-num">6</div>
+    <div class="sec-title">分析結果</div>
+    <div class="sec-meta">約 3 分</div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sec-body">
+    <div class="sec-content">
+      <p>
+        では、3つの実験の結果を順番に詳しく発表します。すべて一元配置分散分析（実験3については二元配置分散分析）で、有意水準α＝0.05で検証されました。
+      </p>
+
+      <p><strong>【実験1の結果：単音発声における振動刺激の効果】</strong></p>
+      <p>
+        まず、主観的評価項目について述べます。Q2（音高の合わせやすさ）に関し、振動刺激あり（A2）の平均値は45.71（標準偏差SD = 25.57）となり、振動刺激なし（A1）の平均値32.13（SD = 21.85）を大きく上回りました。分散分析の結果、Q2において条件間で有意な差が確認されました（F(1, 23) = 5.357, p = 0.030 < .05）。
+      </p>
+      <p>
+        このことから、視覚フィードバックに加えて振動刺激を付与することは、主観的な音高の合わせやすさを向上させる上で有効であることが示唆されました。
+      </p>
+      
+      <div class="result-row">
+        <div class="result-chip sig"><div class="r-val">p＝.030 ✓</div><div class="r-label">Q2. 音高の合わせやすさ（有意差あり）</div></div>
+        <div class="result-chip ns"><div class="r-val">p＝.738</div><div class="r-label">Q1. 自信度（有意差なし）</div></div>
+        <div class="result-chip ns"><div class="r-val">p＝.323</div><div class="r-label">Q3. 楽しさ（有意差なし）</div></div>
+        <div class="result-chip ns"><div class="r-val">p＝.333</div><div class="r-label">課題時間（有意差なし）</div></div>
+      </div>
+
+      <p>
+        一方で、Q1（歌唱の自信度）およびQ3（音高合わせの楽しさ）については、A2の平均値（Q1: 35.17, SD = 20.64, Q3: 53.29, SD = 22.58）がA1（Q1: 34.17, SD = 22.36, Q3: 50.00, SD = 21.91）を僅かに上回る結果となったものの、分散分析において有意な差は見られませんでした（Q1: p = 0.738, Q3: p = 0.323）。
+      </p>
+      <p>
+        次に、客観的指標である課題終了までの時間に関し、平均値は振動なし（A1）で123.63秒（SD = 58.35）、振動あり（A2）で137.14秒（SD = 72.06）となりました。本実験の結果からは振動刺激による時間の短縮傾向は見られず、分散分析においても有意差は確認されませんでした（F(1, 23) = 0.978, p = 0.333）。
+      </p>
+
+      <p><strong>【実験2の結果：メロディ歌唱における振動刺激の効果】</strong></p>
+      <p>
+        まず、主観評価項目のうちQ3（歌唱の楽しさ）に関し、振動刺激あり（B2）の平均が59.88（SD = 20.48）、振動刺激なし（B1）の平均が51.54（SD = 24.14）となり、振動刺激がある条件の方が高い評価となる傾向にありました。分散分析の結果、Q3において条件間で有意な差が確認されました（F(1, 23) = 5.516, p = 0.028 < .05）。
+      </p>
+      <p>
+        このことから、視覚フィードバックに加えて振動刺激を付与する方が、歌唱をより楽しく感じさせることが示唆されました。
+      </p>
+
+      <div class="result-row">
+        <div class="result-chip sig"><div class="r-val">p＝.028 ✓</div><div class="r-label">Q3. 歌唱の楽しさ（有意差あり）</div></div>
+        <div class="result-chip ns"><div class="r-val">p＝.189</div><div class="r-label">Q1. 自信度（有意差なし）</div></div>
+        <div class="result-chip ns"><div class="r-val">p＝.094</div><div class="r-label">Q2. 気持ちよさ（有意差なし）</div></div>
+        <div class="result-chip ns"><div class="r-val">p＝.372</div><div class="r-label">正確度（有意差なし）</div></div>
+      </div>
+
+      <p>
+        一方で、Q1（歌唱の自信度）およびQ2（歌唱の気持ちよく歌えたか）については、B2の平均値（Q1: 38.83, SD = 22.92, Q2: 49.92, SD = 22.53）がB1の平均値（Q1: 34.38, SD = 24.07, Q2: 43.58, SD = 22.72）を上回ったものの、分散分析において有意な差は見られませんでした（Q1: p = 0.189, Q2: p = 0.094）。
+      </p>
+      <p>
+        次に、客観な指標である正確度およびずれ度に関し、正確度の平均値は振動なし（B1）で51.84%（SD = 23.36）、振動あり（B2）で55.19%（SD = 22.03）となり、ずれ度の平均値は振動なし（B1）で0.8871（SD = 0.57）、振動あり（B2）で0.7717（SD = 0.42）となりました。これらの客観的数値においても振動刺激による有意な向上は見られず、分散分析においても有意差は確認されませんでした（正確度: p = 0.372, ずれ度: p = 0.195）。
+      </p>
+
+      <p><strong>【実験3の結果：振動パターンの比較】</strong></p>
+      <p>
+        まず、主観的な評価項目のうちQ2（歌唱の気持ちよさ）に関し、変化曲線（要因X）において有意な主効果が確認されました（F = 4.410, p = 0.047 < .05）。平均値を見ると、線形条件（X1）が約59.4であったのに対し、冪乗条件（X2）は約54.6であり、線形的な振動変化の方が主観的な気持ちよさを高く評価する傾向にありました。なお、振動の与え方（要因Y）および交互作用については有意差は見られませんでした。
+      </p>
+      <p>
+        次に、客観的指標である課題終了までの時間に関しても、変化曲線（要因X）において有意な主効果が確認されました（F = 6.411, p = 0.019 < .05）。平均タイムは線形条件（X1）で84.53秒、冪乗条件（X2）で100.09秒となり、線形的な振動提示の方が有意に短時間で課題をクリアできることが示されました。Q2の結果と同様、要因Yおよび交互作用に有意差は認められませんでした。
+      </p>
+
+      <div class="result-row">
+        <div class="result-chip sig"><div class="r-val">p＝.047 ✓</div><div class="r-label">Q2. 気持ちよさ（線形＞冪乗）</div></div>
+        <div class="result-chip sig"><div class="r-val">p＝.019 ✓</div><div class="r-label">課題時間（線形＜冪乗）</div></div>
+        <div class="result-chip ns"><div class="r-val">n.s.</div><div class="r-label">Q1, Q3, Q4（有意差なし）</div></div>
+      </div>
+
+      <p>
+        その他の項目であるQ1（合わせやすさ）、Q3（楽しさ）、Q4（集中度）については、いずれの要因においても有意な差は見られませんでした。
+      </p>
+      <p>
+        これらから考えると、実験3においては、振動の変化曲線（要因X）が主観的な歌唱の心地よさおよび客観的な音高合わせの効率に影響を与えることが明らかとなりました。特に、線形的に振動が変化するパターン（X1）が、冪乗的な変化（X2）よりも有効であるという結果が得られました。
+      </p>
+    </div>
+    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+  </div>
+</div>
+
+<!-- ⑦ 考察・推測・Limitation -->
+<div class="section-card" data-mins="3.5">
+  <div class="sec-header" onclick="toggle(this)">
+    <div class="sec-num">7</div>
+    <div class="sec-title">考察・推測・研究の限界</div>
+    <div class="sec-meta">約 3 分 30 秒</div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sec-body">
+    <div class="sec-content">
+      <p>
+        では、実験結果から得られた知見について、詳しく考察していきます。
+      </p>
+      
+      <p><strong>【主観の向上と客観の向上の乖離について】</strong></p>
+      <p>
+        全体的に、振動フィードバックは「楽しさ」や「合わせやすさ」といった主観的な体験を向上させる一方で、客観的な音高精度や時間には直結しなかった点が共通しています。これは、振動が「正解への確信」や臨場感を与えるガイドとして有効であったが、発声筋肉の精密な調整そのものを劇的に改善するまでは至らなかったと考えられます。
+      </p>
+      <p>
+        先行研究において、身体への振動提示は音楽の臨場感や没入感を高めることが示されています。同じ音楽であっても、音としてのみ体験するよりも、振動を身体で直接感じるような高性能なスピーカーや音楽ライブの方がより「楽しい」と感じるように、音高合わせというタスクにおいても振動刺激はポジティブな影響を与える要因であったと考えられます。
+      </p>
+      <p>
+        実際に、スマートフォン等で手軽に音楽を聴ける現代においても、ライブ等の身体的体験へのニーズが高いのはそのためではないかと推察されます。また、健常者のリズム感向上を目的とした先行研究では、振動刺激が混乱を招くというネガティブな影響も報告されていましたが、本研究の音高合わせに関してはそのような傾向は見られず、むしろエンターテインメント性を高める要素として有効に機能したと言えます。
+      </p>
+      <p>
+        しかし、その楽しさが直ちにピッチを制御する筋肉の動き、すなわち「知覚運動マッピング」を劇的に改善させるまでには至らなかったため、客観的な数値には差が現れなかったと考えられます。
+      </p>
+      
+      <p><strong>【モニタリングの過負荷の問題について】</strong></p>
+      <p>
+        実験1や実験2で「自信度」や「気持ちよさ」の値がかえって低下する傾向が見られました。これは、自身の音高ズレが常に可視化・触覚化されることで、被験者が「自分の不正確さを過剰に意識」する状態になっていたと考えられます。
+      </p>
+      <p>
+        追加の分析により、振動なし実験を先に行った被験者群において、実験後に「音高の合わせやすさ」と「歌唱の気持ちよさ」の評価が著しく低下することが確認されました。これにより、何ら制約のない自由な歌唱と比較して、システムによるフィードバックを受けること自体が、歌唱本来の楽しさや自信を阻害する要因になり得ることが示唆されました。
+      </p>
+      <p>
+        つまり、どのようなフィードバックであっても、自身の声を監視・評価される環境下では、主観的な楽しさが低下しやすい傾向にあるのではないかと考えられます。
+      </p>
+      <p>
+        フィードバックがない環境では、歌唱者は自身の感覚に基づき「正しい音高で歌えている」と感じる状態で歌うことができます。しかし、システムによってリアルタイムにズレが可視化・触覚化されると、主観的に正しいと思っている自身の発声音高が否定され続ける状況が生じます。この「できると思っていてもなかなか補正できない」というジレンマが気持ちよさを減退させ、歌唱という「心地よい表現」を「音高を合わせなければならないタスク」へと変質させてしまったことが、評価低下の要因であると考えられます。
+      </p>
+      <p>
+        この課題を解決するには、単に正確さを提示するだけでなく、楽しさを損なわないようなフィードバックの提示量や、エンターテインメント性を考慮した設計にする必要があります。
+      </p>
+      
+      <p><strong>【線形変化が有効だった理由について】</strong></p>
+      <p>
+        実験3の結果から、線形的に振動が変化するパターン（X1）が冪乗的な変化（X2）よりも、主観的な歌唱の気持ちよさおよび客観的な課題終了までの時間（効率）において有意に優れていることが確認されました。
+      </p>
+      <p>
+        冪乗変化（X2）は、関数の変化率が大きい範囲では音高の差異の変化を微細に表現できる反面、それ以外の変化率の小さい範囲では振動の変化も乏しくなり、音高の差異の変化が伝達されにくいという特性を持ちます。
+      </p>
+      <p>
+        また、モニターに表示される音程バーのような視覚情報は、二つの線の重なりや微細な位置の乖離を認識することに適している一方、人間が識別可能な振動の強弱は「非常に強い」「そこそこ強い」「弱い」「非常に弱い」「なし」といった数段階の大まかな区分でしか認識できない可能性があります。この触覚における識別分解能の限界も、結果に影響を及ぼしたと考えられます。
+      </p>
+      <p>
+        以上のことから、本システムにおいて触覚フィードバックは、視覚情報による微細な調整を補完し、大まかなズレの度合いを直感的に認識させる役割を担っていると解釈できます。この役割を考慮した場合、特定の範囲のみ解像度を高める冪乗変化よりも、全範囲において常に一定の変化率でずれ度合いを均等に提示できる線形変化（X1）の方が、視覚情報を補完する指標として機能しやすく、結果として歌唱の心地よさや効率の向上に結びついたと考えられます。
+      </p>
+
+      <p><strong>【全体の考察】</strong></p>
+      <p>
+        本研究では、歌唱時の音高合わせにおける振動フィードバック支援の有効性と、最適な提示パターンの解明を目的とし、三つの実験を通して検証を行ってきました。一連の検証結果から、振動提示は「歌唱の楽しさ」や「音高の合わせやすさ」といった主観的な評価を向上させる一方で、短時間の試行では客観的な音高精度の向上には直結しにくいという実態が明らかになりました。
+      </p>
+      <p>
+        この主観と客観の乖離が生じた要因の一つとして、被験者がシステムの操作や振動情報の解釈を十分に習熟していなかった可能性が考えられます。本研究では、限られた被験者数（24名）から効率的にデータを収集するとともに、被験者ごとの歌唱熟練度が結果に与える影響を抑制するため、被験者内実験を採用しました。そのため、各被験者が振動フィードバックを伴う歌唱に触れる時間は極めて限定的であり、また実験順序による影響を排除するために十分な練習時間を設けることも困難でした。
+      </p>
+      <p>
+        歌唱は身体の目に見えない箇所で繊細な身体制御を伴う技能であり、フィードバック情報をもとに自身の筋肉の動かし方を制御し、発声音高を調整するには、一定の学習期間を要すると推察されます。
+      </p>
+
+      <div class="callout warn">
+        <strong>【研究の限界（Limitation）】</strong><br><br>
+        <strong>① 被験者数の少さ：</strong>24名という限られた人数であり、結果の汎化には追加の検証が必要です。<br><br>
+        <strong>② 短期間の実験：</strong>各被験者が振動フィードバックを伴う歌唱に触れる時間が極めて限定的であり、学習による効果が十分に現れる時間がありませんでした。<br><br>
+        <strong>③ 被験者内実験の影響：</strong>実験順序による影響を完全に排除するためには、十分な練習時間を設けることが困難であった点です。<br><br>
+        <strong>④ 実験環境の制約：</strong>防音室での1人実験であり、実際のカラオケ環境とは異なる条件での検証となりました。
+      </div>
+    </div>
+    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+  </div>
+</div>
+
+<!-- ⑧ 展望 -->
+<div class="section-card" data-mins="1.5">
+  <div class="sec-header" onclick="toggle(this)">
+    <div class="sec-num">8</div>
+    <div class="sec-title">展望</div>
+    <div class="sec-meta">約 1 分 30 秒</div>
+    <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sec-body">
+    <div class="sec-content">
+      <p>
+        最後に、今後の展望について述べます。
+      </p>
+      <p>
+        今回の実験では短期間の検証に限られるため、今後は「数回にわたる訓練セッション」を設けた上で、中長期的な使用による成長率を比較する実験が求められます。振動フィードバックが音高調整の「自動化」をどの程度加速させるかは、このシステムを発展させる上で非常に重要な検討課題です。
+      </p>
+      <p>
+        長期的なトレーニングの過程において、振動刺激が音高調整の自動化をどの程度加速させるのかといった点は、本システムを発展させる上で非常に重要な検討課題です。
+      </p>
+      <p>
+        また、「モニタリングの過負荷」の問題に対処するために、単に正確さを提示するだけでなく、楽しさを損なわないようなフィードバックの提示量や、エンターテインメント性を考慮した設計も、今後の改善の方向性として考えられます。
+      </p>
+      <p>
+        さらに、個人の歌唱能力の習熟段階に応じた「最適なフィードバック設計」や、長期的なスキル定着への影響についても、今後の検討課題としています。
+      </p>
+      <div class="callout">
+        本研究で得られた知見が、歌唱に苦手意識を持つ人々への支援や、次世代の音楽教育におけるインタラクティブな学習環境の構築に向けた一歩となることを期待しています。
+      </div>
+      <p>
+        以上で、私の発表を終わりにいたします。ご清聴ありがとうございました。
+      </p>
+    </div>
+    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+  </div>
+</div>
+
+<div class="footer-note">発表進行の目標は 18 分程度です。各セクションの「完了」マークを押すと、進行プログレスが更新されます。</div>
+
+<script>
+  // ─── toggle open/close ───
+  function toggle(header) {
+    const card = header.closest('.section-card');
+    card.classList.toggle('open');
+  }
+
+  // ─── mark done ───
+  function markDone(btn) {
+    const card = btn.closest('.section-card');
+    if (card.classList.contains('done')) {
+      card.classList.remove('done');
+      btn.textContent = '✓ このセクション完了';
+    } else {
+      card.classList.add('done');
+      btn.textContent = '↩ 戻す';
+    }
+    updateProgress();
+  }
+
+  // ─── progress ───
+  function updateProgress() {
+    const cards = document.querySelectorAll('.section-card');
+    let total = 0, done = 0;
+    cards.forEach(c => {
+      const m = parseFloat(c.dataset.mins);
+      total += m;
+      if (c.classList.contains('done')) done += m;
+    });
+    const pct = (done / total) * 100;
+    document.getElementById('totalFill').style.width = pct + '%';
+    const remaining = total - done;
+    const mins = Math.floor(remaining);
+    const secs = Math.round((remaining - mins) * 60);
+    document.getElementById('totalTimeLeft').textContent =
+      mins > 0 ? `残り ${mins} 分 ${secs > 0 ? secs + '秒' : ''}` : '完了 🎉';
+  }
+
+  // init
+  updateProgress();
+</script>
+</body>
+</html>
