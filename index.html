@@ -264,6 +264,54 @@
     font-size: 0.76rem;
     color: var(--text-light);
   }
+
+  /* 固定ヘッダー（タイマー）のスタイル */
+.timer-panel {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: var(--card);
+  padding: 15px;
+  border-bottom: 2px solid var(--accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+.progress-container {
+  width: 100%;
+  height: 12px;
+  background: var(--progress-track);
+  border-radius: 6px;
+  margin-top: 10px;
+  position: relative;
+  overflow: hidden;
+}
+#globalProgressBar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  transition: width 0.5s linear;
+}
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'monospace';
+  font-weight: bold;
+}
+/* 各カードのタイムラベル */
+.card-timing {
+  font-size: 0.9rem;
+  color: var(--accent2);
+  background: var(--tag-bg);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+  margin-right: 10px;
+}
+.section-card.active {
+  border-left: 5px solid var(--accent2) !important;
+  background: #fffdfa;
+}
 </style>
 </head>
 <body>
@@ -274,85 +322,95 @@
 </div>
 
 <div class="header">
-  <h1>発表スクリプト管理</h1>
-  <div class="timer-container" style="background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; position: sticky; top: 10px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <button id="startBtn" onclick="startPresentation()" style="background: var(--accent2); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">▶ 発表スタート</button>
-      <div style="text-align: right;">
-        <span id="elapsedTime" style="font-size: 1.2rem; font-weight: bold; font-family: monospace;">00:00</span>
-        <span style="color: var(--text-light);"> / 17:00</span>
-      </div>
-    </div>
-    <div style="width: 100%; height: 8px; background: var(--progress-track); border-radius: 4px; overflow: hidden;">
-      <div id="totalProgressBar" style="width: 0%; height: 100%; background: var(--accent); transition: width 1s linear;"></div>
-    </div>
-    <div id="currentSectionHint" style="font-size: 0.85rem; margin-top: 8px; color: var(--accent); font-weight: 500;">
-      待機中...
+  <div class="timer-panel">
+  <div class="time-display">
+    <button id="startBtn" onclick="startTimer()" style="padding: 8px 16px; cursor: pointer; background: var(--accent2); color: white; border: none; border-radius: 4px; font-weight: bold;">▶ スタート</button>
+    <div>
+      <span id="currentTime">00:00</span> <span style="color:var(--text-light)">/ 17:00</span>
     </div>
   </div>
+  <div class="progress-container">
+    <div id="globalProgressBar"></div>
+  </div>
+</div>
 </div>
 
 <script>
 let startTime;
-let timerInterval;
-const totalTargetMins = 17; // 目標の17分
+let timerId;
+const totalTargetSec = 17 * 60;
 
-function startPresentation() {
-  if (startTime) return; // 二重スタート防止
-  startTime = Date.now();
-  document.getElementById('startBtn').disabled = true;
-  document.getElementById('startBtn').style.opacity = '0.5';
-  document.getElementById('startBtn').textContent = '発表中...';
-  
-  timerInterval = setInterval(updateTimer, 1000);
-}
-
-function updateTimer() {
-  const now = Date.now();
-  const diffMs = now - startTime;
-  const diffSec = Math.floor(diffMs / 1000);
-  
-  // タイマー表示更新
-  const mins = Math.floor(diffSec / 60);
-  const secs = diffSec % 60;
-  document.getElementById('elapsedTime').textContent = 
-    `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  
-  // 全体進捗バー更新
-  const totalSec = totalTargetMins * 60;
-  const progressPercent = Math.min((diffSec / totalSec) * 100, 100);
-  document.getElementById('totalProgressBar').style.width = progressPercent + '%';
-  
-  // 現在の予定セクションを特定
-  updateSectionFocus(diffSec / 60);
-}
-
-function updateSectionFocus(elapsedMins) {
+// 1. 各カードの時間を17分に合わせて自動スケーリングし、ラベルを表示
+function initTimings() {
   const cards = document.querySelectorAll('.section-card');
-  let cumulativeMins = 0;
-  let currentSecTitle = "";
+  let totalDataMins = 0;
+  cards.forEach(c => totalDataMins += parseFloat(c.dataset.mins));
+  
+  const scaleFactor = (17 * 60) / (totalDataMins * 60);
+  let cumulativeSec = 0;
 
   cards.forEach(card => {
-    const duration = parseFloat(card.dataset.mins);
-    const startOfThis = cumulativeMins;
-    const endOfThis = cumulativeMins + duration;
+    const originalSec = parseFloat(card.dataset.mins) * 60;
+    const scaledSec = originalSec * scaleFactor;
+    cumulativeSec += scaledSec;
+
+    // 左：累積経過時間（そのカード終了時） | 右：そのカードの持ち時間
+    const leftTime = formatTime(cumulativeSec);
+    const rightTime = formatTime(scaledSec);
     
-    // 予定時間内のカードを強調
-    if (elapsedMins >= startOfThis && elapsedMins < endOfThis) {
-      card.style.borderColor = "var(--accent2)";
-      card.style.boxShadow = "0 0 15px rgba(224, 122, 95, 0.3)";
-      currentSecTitle = card.querySelector('.sec-title').textContent;
-    } else {
-      card.style.borderColor = "var(--border)";
-      card.style.boxShadow = "none";
-    }
-    cumulativeMins += duration;
+    const label = document.createElement('span');
+    label.className = 'card-timing';
+    label.textContent = `${leftTime} | ${rightTime}`;
+    card.querySelector('.sec-header').appendChild(label);
+    
+    // 計算後の秒数をデータ属性に保持
+    card.dataset.scaledEnd = cumulativeSec;
   });
-  
-  if (currentSecTitle) {
-    document.getElementById('currentSectionHint').textContent = `現在の予定: ${currentSecTitle}`;
-  }
 }
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function startTimer() {
+  if (startTime) return;
+  startTime = Date.now();
+  document.getElementById('startBtn').disabled = true;
+  timerId = setInterval(update, 500);
+}
+
+function update() {
+  const elapsedSec = (Date.now() - startTime) / 1000;
+  
+  // タイマーとバーの更新
+  document.getElementById('currentTime').textContent = formatTime(elapsedSec);
+  const progress = Math.min((elapsedSec / totalTargetSec) * 100, 100);
+  document.getElementById('globalProgressBar').style.width = progress + '%';
+
+  // 現在のカードをハイライト
+  const cards = document.querySelectorAll('.section-card');
+  cards.forEach(card => {
+    const endTime = parseFloat(card.dataset.scaledEnd);
+    const startTime = endTime - (parseFloat(card.dataset.mins) * 60 * ((17*60)/(23.5*60))); // 簡易スケール
+    
+    if (elapsedSec >= (endTime - (parseFloat(card.dataset.mins)*43)) && elapsedSec <= endTime) {
+       // ※正確な判定のため調整
+    }
+    // 単純に「今の経過時間が終了時間より前の最初のカード」をアクティブにする
+    if (elapsedSec < endTime) {
+        if (!document.querySelector('.section-card.active-now')) {
+            card.classList.add('active');
+        }
+    } else {
+        card.classList.remove('active');
+        card.style.opacity = "0.6"; // 終わったカードを薄くする
+    }
+  });
+}
+
+window.onload = initTimings;
 </script>
 
 <!-- ════════════════════════════════════════
