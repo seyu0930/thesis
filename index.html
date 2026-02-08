@@ -25,7 +25,7 @@
     font-family: 'Noto Sans JP', sans-serif;
     background: var(--bg);
     color: var(--text);
-    min-height: 100vh;
+    分-height: 100vh;
     padding: 32px 16px;
   }
 
@@ -273,12 +273,87 @@
   <div class="sub">田中 悠晴　｜　2025年度 関西大学 米澤朋子研究室 卒業論文 ｜　発表スクリプト（詳細版）</div>
 </div>
 
-<!-- total progress -->
-<div class="timer-bar">
-  <span class="label">発表進行</span>
-  <div class="track"><div class="fill" id="totalFill"></div></div>
-  <span class="time-text" id="totalTimeLeft">約 18 min</span>
+<div class="header">
+  <h1>発表スクリプト管理</h1>
+  <div class="timer-container" style="background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; position: sticky; top: 10px; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+      <button id="startBtn" onclick="startPresentation()" style="background: var(--accent2); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold;">▶ 発表スタート</button>
+      <div style="text-align: right;">
+        <span id="elapsedTime" style="font-size: 1.2rem; font-weight: bold; font-family: monospace;">00:00</span>
+        <span style="color: var(--text-light);"> / 17:00</span>
+      </div>
+    </div>
+    <div style="width: 100%; height: 8px; background: var(--progress-track); border-radius: 4px; overflow: hidden;">
+      <div id="totalProgressBar" style="width: 0%; height: 100%; background: var(--accent); transition: width 1s linear;"></div>
+    </div>
+    <div id="currentSectionHint" style="font-size: 0.85rem; margin-top: 8px; color: var(--accent); font-weight: 500;">
+      待機中...
+    </div>
+  </div>
 </div>
+
+<script>
+let startTime;
+let timerInterval;
+const totalTargetMins = 17; // 目標の17分
+
+function startPresentation() {
+  if (startTime) return; // 二重スタート防止
+  startTime = Date.now();
+  document.getElementById('startBtn').disabled = true;
+  document.getElementById('startBtn').style.opacity = '0.5';
+  document.getElementById('startBtn').textContent = '発表中...';
+  
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  const now = Date.now();
+  const diffMs = now - startTime;
+  const diffSec = Math.floor(diffMs / 1000);
+  
+  // タイマー表示更新
+  const mins = Math.floor(diffSec / 60);
+  const secs = diffSec % 60;
+  document.getElementById('elapsedTime').textContent = 
+    `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  
+  // 全体進捗バー更新
+  const totalSec = totalTargetMins * 60;
+  const progressPercent = Math.min((diffSec / totalSec) * 100, 100);
+  document.getElementById('totalProgressBar').style.width = progressPercent + '%';
+  
+  // 現在の予定セクションを特定
+  updateSectionFocus(diffSec / 60);
+}
+
+function updateSectionFocus(elapsedMins) {
+  const cards = document.querySelectorAll('.section-card');
+  let cumulativeMins = 0;
+  let currentSecTitle = "";
+
+  cards.forEach(card => {
+    const duration = parseFloat(card.dataset.mins);
+    const startOfThis = cumulativeMins;
+    const endOfThis = cumulativeMins + duration;
+    
+    // 予定時間内のカードを強調
+    if (elapsedMins >= startOfThis && elapsedMins < endOfThis) {
+      card.style.borderColor = "var(--accent2)";
+      card.style.boxShadow = "0 0 15px rgba(224, 122, 95, 0.3)";
+      currentSecTitle = card.querySelector('.sec-title').textContent;
+    } else {
+      card.style.borderColor = "var(--border)";
+      card.style.boxShadow = "none";
+    }
+    cumulativeMins += duration;
+  });
+  
+  if (currentSecTitle) {
+    document.getElementById('currentSectionHint').textContent = `現在の予定: ${currentSecTitle}`;
+  }
+}
+</script>
 
 <!-- ════════════════════════════════════════
      SECTIONS – data-mins = 発表時間（分）
@@ -287,7 +362,7 @@
 <!-- ① 研究概要 -->
 <div class="section-card" data-mins="2.5">
   <div class="sec-header" onclick="toggle(this)">
-    <div class="sec-title">研究概要</div>
+    <div class="sec-title">研究概要 1分07秒 - 1分07秒</div>
     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="sec-body">
@@ -299,14 +374,13 @@
         本研究では、歌唱時の音高合わせを容易にし、歌唱をより楽しめるようにすることを目的とし、振動刺激によるリアルタイムフィードバックが視覚刺激によるリアルタイムフィードバックの増強として寄与するのかについて検証を行いました。実験内容としてカラオケのような音程バーによる視覚フィードバックに加えて、手のひらに振動を与える触覚フィードバックを組み合わせたシステムを開発し、24名の被験者を対象に3つの実験でその効果を検証しました。結果として、振動提示の付与は「楽しさ」や「音高の合わせやすさ」といった主観的評価を有意に向上させる一方で、短時間の試行では客観的な音高精度の向上や時間短縮には直結しないことが示されました。また、振動の与え方は、冪乗的な変化よりも線形的な変化の方が、主観的な歌唱の心地よさおよび客観的な音高合わせの効率の向上に有意に有効であることが示唆されました。
       </p>
     </div>
-    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
   </div>
 </div>
 
 <!-- ② 背景 -->
 <div class="section-card" data-mins="3">
   <div class="sec-header" onclick="toggle(this)">
-    <div class="sec-title">背景</div>
+    <div class="sec-title">背景 2分15秒 - 1分04秒</div>
     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="sec-body">
@@ -324,14 +398,13 @@
         しかし、歌唱能力は生まれつきのものだけではなく，訓練するとある程度のレベルまでは後天的に獲得できるとされています。そこで本研究では、音感に焦点を当て、「自分は音痴だ」といった歌唱時の悩みを軽減させ、歌うことをより楽しめるようになることを目的としました。
       </p>
     </div>
-    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
   </div>
 </div>
 
 <!-- ③ 関連研究 -->
 <div class="section-card" data-mins="3">
   <div class="sec-header" onclick="toggle(this)">
-    <div class="sec-title">関連研究</div>
+    <div class="sec-title">関連研究 6分30秒 - 4分15秒</div>
     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="sec-body">
@@ -340,7 +413,7 @@
         次に、本研究に関連する先行研究について、4つの視点から紹介します。
       </p>
 
-            <p><strong>①歌唱におけるピッチ制御の困難性と視覚フィードバックの有効性</strong></p>
+            <p><strong>①歌唱におけるピッチ制御の困難性と視覚フィードバックの有効性 - 2min</strong></p>
       <p>
         海外の研究によると、音痴な人の歌唱に共通する傾向を調査した結果、音痴は知覚、運動、記憶の統合に問題がある可能性が指摘されており、正しい音高で発声・歌唱をするには、脳によって音高を正確に聞き分け記憶し、それを神経が筋肉に正確に伝えることが重要であると言えます。
       </p>
@@ -361,7 +434,7 @@
         これに対し、島宗らや米田は、家庭用カラオケの採点システムや音程可視化ソフトウェアを用いた訓練の効果を検証し、リアルタイムの視覚フィードバックが自己修正を促し、音程再現の精度を向上させることを示しました。
       </p>
       
-      <p><strong>②身体的振動刺激による音楽体験の拡張と臨場感の向上</strong></p>
+      <p><strong>②身体的振動刺激による音楽体験の拡張と臨場感の向上 - 46sec</strong></p>
       <p>
         音楽を聴覚以外の感覚で享受する手法として、振動刺激を用いた研究が多くなされています。柳らは、振動モータアレイを用いた音楽の物理的臨場感提示システムを提案し、振動を付与することで、「音楽の迫力」や「臨場感」といった印象評価が、振動がない場合と比較して有意に向上することを確認しました 。
 
@@ -371,7 +444,7 @@
         また、金箱は、振動デバイスが音楽聴取時の印象に与える効果について検討し、特定の振動付与が「楽しさ」や「快感」といった主観的な評価を向上させることを明らかにしました。
       </p>
       
-      <p><strong>③身体障がい者を対象とした振動フィードバックによる歌唱支援</strong></p>
+      <p><strong>③身体障がい者を対象とした振動フィードバックによる歌唱支援 - 38sec</strong></p>
       <p>
         聴覚情報を十分に利用できない対象者に対し、振動を代替手段とする研究も多くあります。坂尻らは、盲ろう者や聴覚障がい者の歌唱支援を目的として、音声ピッチ情報を振動に変換して提示する触覚フィードバックシステムを開発しました。このシステムを用いた評価実験では、目標音程との多少のズレはあるものの、被験者がメロディに沿って歌唱することが可能であることを示しました。
       </p>
@@ -379,7 +452,7 @@
         また、古賀らは腕に装着した振動モータを用いて、音声ピッチの変化を伝達する手法を提案し、訓練によって音程制御能力が向上することを報告しています。
       </p>
       
-      <p><strong>④健常者の音楽学習における振動刺激の活用</strong></p>
+      <p><strong>④健常者の音楽学習における振動刺激の活用 - 51sec</strong></p>
       <p>
         健常者の音楽学習における振動刺激の活用については、リズム学習の分野で先行研究があります。三浦らは、触覚フィードバックを用いた音楽学習支援システムを開発し、タイミング把握における触覚刺激の有効性を検証しました。結果として聴覚や視覚に障がいがない「健常者」を対象としたリズム感訓練においては、振動刺激がかえって「混乱や情報過多」を招くという結果が報告されています。
       </p>
@@ -387,14 +460,13 @@
         「聴覚や視覚障がい者の代替手段」としての振動活用か、「健常者におけるリズム学習」への適用に軸を置いた既存の研究に対し、本研究は、健常者が視覚フィードバックを使用する環境下において、補助的な振動フィードバックが「音高合わせの正確さ」や「主観的な歌いやすさ・楽しさ」にどのような相乗効果をもたらすかを体系的に検証する点に独自性があります。
       </p>
     </div>
-    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
   </div>
 </div>
 
 <!-- ④ 提案システム -->
 <div class="section-card" data-mins="4">
   <div class="sec-header" onclick="toggle(this)">
-    <div class="sec-title">提案システム</div>
+    <div class="sec-title">提案システム 8分10秒 - 1分09秒 + 実装動画 30秒</div>
     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="sec-body">
@@ -431,14 +503,13 @@
 
 
     </div>
-    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
   </div>
 </div>
 
 <!-- ⑤ 実験設計 -->
 <div class="section-card" data-mins="3">
   <div class="sec-header" onclick="toggle(this)">
-    <div class="sec-title">検証：実験設定の説明</div>
+    <div class="sec-title">検証：実験設定の説明 11分15秒 - 2分05秒 + 実装動画 1分</div>
     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="sec-body">
@@ -449,67 +520,60 @@
 
       <p><strong>【被験者について】</strong></p>
       <p>
-        被験者は、視覚・聴覚・触覚に障がいのない20〜23歳の男女24名です。
+        被験者は、視覚・聴覚・触覚に障がいのない20〜23歳の男女24名で，実験1,2は視覚刺激に加えた、振動刺激ありなしの1要因2水準の被験者内実験，実験3は視覚刺激に加えた、振動変化の線形の違い（X1: 直線的、X2: 二次関数的）と振動刺激の強弱の変化の向き（Y1: 正確なほど強い、Y2: 正確なほど弱い）の2要因2水準の組み合わせによる計4条件の被験者内実験です。
       </p>
       <p><strong>【実験環境】</strong></p>
       <p><strong>実験1：単音発声の音高合わせ（振動の有無の比較）</strong></p>
       <p>
-        実験1は視覚刺激に加えた、振動刺激ありなしの1要因2水準の被験者内実験計画です。実験1では発声に焦点を当て、振動刺激が目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行いました。ランダムに指し示される目標音高を被験者が2秒以上正確に合わせられたらクリアという手順を複数回繰り返し、最初の発声から終了までの時間の計測と、その後にVAS法に従い、音高合わせの自信度、音高の合わせやすさ、音高合わせの楽しさについて、100段階評価で被験者に回答を求めました。
+        実験1では発声に焦点を当て、振動刺激が目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行いました。ランダムに指し示される目標音高を被験者が2秒以上正確に合わせられたらクリアという手順を複数回繰り返し、最初の発声から終了までの時間の計測と、その後にVAS法に従い、音高合わせの自信度、音高の合わせやすさ、音高合わせの楽しさについて、100段階評価で被験者に回答を求めました。
       </p>
       <p><strong>実験2：メロディに沿った歌唱の音高合わせ（振動の有無の比較）</strong></p>
       <p>
-        実験2は視覚刺激に加えた、振動刺激ありなしの1要因2水準の被験者内実験計画です。実験2では歌唱に焦点を当て、振動刺激が目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行いました。カラオケのように右から左に流れてくる目標音高を被験者が時間内に合わせるよう努める手順を一曲分繰り返し、各音高発声可能時間内にどれだけ音高を正確に合わせられていたか、ズレていたかの測定と、その後にVAS法に従い、歌唱の自信度、歌唱の気持ちよさ、歌唱の楽しさについて100段階評価で被験者に回答を求めました。
+        実験2では歌唱に焦点を当て、振動刺激が目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行いました。カラオケのように右から左に流れてくる目標音高を被験者が時間内に合わせるよう努める手順を一曲分繰り返し、各音高発声可能時間内にどれだけ音高を正確に合わせられていたか、ズレていたかの測定と、その後にVAS法に従い、歌唱の自信度、歌唱の気持ちよさ、歌唱の楽しさについて100段階評価で被験者に回答を求めました。
       </p>
       <p><strong>実験3：振動パターンの種類による比較</strong></p>
       <p>
-        実験3では、視覚刺激に加えた、振動変化の線形の違い（X1: 直線的、X2: 二次関数的）と振動刺激の強弱の変化の向き（Y1: 正確なほど強い、Y2: 正確なほど弱い）の2要因2水準の組み合わせによる計4条件の被験者内実験計画です。実験3では実験1と同様の内容を振動4パターン分行い、どの振動タイプを用いた時が最も目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行うため、終了までの時間の計測と、その後にVAS法に従い、音高の合わせやすさ、気持ちよさ、楽しさ、集中度について100段階評価で被験者に回答を求めました。
+        実験3では実験1と同様の内容を振動4パターン分行い、どの振動タイプを用いた時が最も目標音高に対して発声音高を主観的、客観的に合わせやすくするのかについて検証を行うため、終了までの時間の計測と、その後にVAS法に従い、音高の合わせやすさ、気持ちよさ、楽しさ、集中度について100段階評価で被験者に回答を求めました。
       </p>
     </div>
-    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
+
   </div>
 </div>
 
 <!-- ⑥ 分析結果 -->
 <div class="section-card" data-mins="3">
   <div class="sec-header" onclick="toggle(this)">
-    <div class="sec-title">分析結果</div>
+    <div class="sec-title">分析結果 12分50秒 - 1分33秒</div>
     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="sec-body">
     <div class="sec-content">
       <p><strong>【実験1の結果：単音発声における振動刺激の効果】</strong></p>
       <p>
-        まず、実験1の主観的評価項目について述べます。Q2（音高の合わせやすさ）に関し、振動刺激あり（A2）の平均値は45.71となり、振動刺激なし（A1）の平均値32.13を大きく上回りました。分散分析の結果、Q2において条件間で有意な差が確認されました。
+        まず、実験1の主観的評価項目について，Q2（音高の合わせやすさ）に関し、振動刺激ありの平均値が振動刺激なしの平均値を大きく上回り，分散分析の結果、有意な差が確認されました。このことから、視覚フィードバックに加えて振動刺激を付与することは、主観的な音高の合わせやすさを向上させる上で有効であることが示唆されました。
       </p>
       <p>
-        このことから、視覚フィードバックに加えて振動刺激を付与することは、主観的な音高の合わせやすさを向上させる上で有効であることが示唆されました。
-      </p>
-      <p>
-        一方で、Q1（歌唱の自信度）およびQ3（音高合わせの楽しさ）については、分散分析において有意な差は見られませんでした。また、客観的指標である課題終了までの時間に関しても、振動刺激による時間の短縮傾向は見られず、分散分析においても有意差は確認されませんでした。
+        一方で、Q1,Q3及び客観的指標である課題終了までの時間に関しても分散分析において有意な差は見られませんでした。
       </p>
       <p><strong>【実験2の結果：メロディ歌唱における振動刺激の効果】</strong></p>
       <p>
-        実験2の主観評価項目のうちQ3（歌唱の楽しさ）に関し、振動刺激あり（B2）の平均が59.88、振動刺激なし（B1）の平均が51.54となり、振動刺激がある条件の方が高い評価となる傾向にありました。分散分析の結果、Q3において条件間で有意な差が確認されました。
+        実験2の主観評価項目のうちQ3（歌唱の楽しさ）に関し、振動刺激ありの平均が振動刺激なしの平均を上回り、分散分析の結果、有意な差が確認されました。このことから、視覚フィードバックに加えて振動刺激を付与する方が、歌唱をより楽しく感じさせることが示唆されました。
       </p>
       <p>
-        このことから、視覚フィードバックに加えて振動刺激を付与する方が、歌唱をより楽しく感じさせることが示唆されました。
-      </p>
-      <p>
-        一方で、Q1（歌唱の自信度）およびQ2（歌唱の気持ちよく歌えたか）については、分散分析において有意な差は見られませんでした。また、客観な指標である正確度およびずれ度に関しても、振動刺激による有意な向上は見られず、分散分析においても有意差は確認されませんでした。
+        一方で、Q1,Q2及び客観な指標である正確度およびずれ度に関しても、分散分析において有意な差は見られませんでした。
       </p>
       <p><strong>【実験3の結果：振動パターンの比較】</strong></p>
       <p>
-        実験3の主観的な評価項目のうちQ2（歌唱の気持ちよさ）に関し、線形条件（X1）が約59.4であったのに対し、冪乗条件（X2）は約54.6であり、分散分析の結果、有意な差が見られました。また、客観的指標である課題終了までの時間に関しても、平均タイムは線形条件（X1）で84.53秒、冪乗条件（X2）で100.09秒となり、分散分析の結果変化、要因Xにおいて有意な主効果が確認されました。なお、振動の与え方（要因Y）および交互作用についてはどの項目でも有意差は見られませんでした。
+        実験3の主観的な評価項目のうちQ2（歌唱の気持ちよさ）に関し、線形条件が冪乗条件を上回り、また、客観的指標である課題終了までの時間に関しても、平均タイムは線形条件を冪乗条件が下回り、分散分析の結果、それぞれ有意な主効果が確認されました．
       </p>
     </div>
-    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
   </div>
 </div>
 
 <!-- ⑦ 考察・推測・Limitation -->
 <div class="section-card" data-mins="3.5">
   <div class="sec-header" onclick="toggle(this)">
-    <div class="sec-title">考察・推測・研究の限界</div>
+    <div class="sec-title">考察・推測・研究の限界 15分40秒 - 2分50秒</div>
     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="sec-body">
@@ -534,7 +598,7 @@
       </p>
       <p><strong>【線形変化が有効だった理由について】</strong></p>
       <p>
-        実験3の結果から、線形的に振動が変化するパターン（X1）が冪乗的な変化（X2）よりも、主観的な歌唱の気持ちよさおよび客観的な課題終了までの時間において有意に優れていることが確認されました。
+        実験3の結果から、線形的に振動が変化するパターンが冪乗的な変化よりも、主観的な歌唱の気持ちよさおよび客観的な課題終了までの時間において有意に優れていることが確認されました。
       </p>
       <p>
         冪乗変化は、関数の変化率が大きい範囲では音高の差異の変化を微細に表現できる反面、それ以外の変化率の小さい範囲では振動の変化も乏しくなり、音高の差異の変化が伝達されにくいという特性を持ちます。
@@ -542,18 +606,14 @@
       <p>
         また、モニターに表示される音程バーのような視覚情報は、二つの線の重なりや微細な位置の乖離を認識することに適している一方、人間が識別可能な振動の強弱は「非常に強い」「そこそこ強い」「弱い」「非常に弱い」「なし」といった数段階の大まかな区分でしか認識できない可能性があります。この触覚における識別分解能の限界も、結果に影響を及ぼしたと考えられます。
       </p>
-      <p>
-        以上のことから、本システムにおいて触覚フィードバックは、視覚情報による微細な調整を補完し、大まかなズレの度合いを直感的に認識させる役割を担っていると解釈できます。この役割を考慮した場合、特定の範囲のみ解像度を高める冪乗変化よりも、全範囲において常に一定の変化率でずれ度合いを均等に提示できる線形変化の方が、視覚情報を補完する指標として機能しやすく、結果として歌唱の心地よさや効率の向上に結びついたと考えられます。
-      </p>
     </div>
-    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
   </div>
 </div>
 
 <!-- ⑧ 展望 -->
 <div class="section-card" data-mins="1.5">
   <div class="sec-header" onclick="toggle(this)">
-    <div class="sec-title">展望</div>
+    <div class="sec-title">展望 16分45秒 - 1分05秒</div>
     <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
   </div>
   <div class="sec-body">
@@ -563,17 +623,14 @@
         本実験では実験順序によるシステム使用の慣れ度合いの違いが結果に与える影響を抑制するため、実験前のシステム使用の説明はほとんどをシステム動作を表す画像や動画を用いて口頭で行いました。そのため、十分な練習時間を設けることが困難であり、被験者がこのシステムに触れる時間も極めて限定的でした。そのため被験者がシステムの操作や振動情報の解釈を十分に習熟していなかった可能性が考えられます。
       </p>
       <p>
-        しかし歌唱は身体の目に見えない箇所で繊細な身体制御を伴う技能であり，発声音高を調整する能力を向上させるには， 一定のシステムへの習熟と学習期間が必要だと推察されます．したがって，今後の展望として，被験者がシステムに十分に習熟した後の変化と成長を被験者内実験的に中長期的に検証する必要があります．長期的なトレーニングの過程において，システムの不慣れを排除し，振動刺激が身体制御をどのように容易にするのかを調査する点は，本システムを発展させる上で非常に重要であると考えます．
+        歌唱は身体の目に見えない箇所で繊細な身体制御を伴う技能であり，発声音高を調整する能力を向上させるには， 一定のシステムへの習熟と学習期間が必要だと推察されます．したがって，今後の展望として，被験者がシステムに十分に習熟した後の変化と成長を被験者内実験的に中長期的に検証し，振動刺激が身体制御をどのように容易にするのかを調査する点は，本システムを発展させる上で非常に重要であると考えます．
       </p>
       <p>
         以上で発表を終わります。ありがとうございました。
       </p>
     </div>
-    <button class="mark-btn" onclick="markDone(this)">✓ このセクション完了</button>
   </div>
 </div>
-
-<div class="footer-note">発表進行の目標は 18 分程度です。各セクションの「完了」マークを押すと、進行プログレスが更新されます。</div>
 
 <script>
   // ─── toggle open/close ───
